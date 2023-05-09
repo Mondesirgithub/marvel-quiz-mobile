@@ -1,11 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, {useState, useEffect } from 'react'
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from '../Firebase/firebase';
-import { Link, useNavigate } from 'react-router-dom';
-import { setDoc } from 'firebase/firestore';
-import { user } from '../Firebase/firebase';
-import Loader from '../Loader';
+import { Text, View, TextInput, StyleSheet, Button, TouchableOpacity, ScrollView, ImageBackground } from 'react-native'
+import Header from '../Header';
 
 function validateEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -13,78 +9,73 @@ function validateEmail(email) {
 }
 
 
-
-const SignUp = () => {
+const SignUp = ({navigation}) => {
   
   const [pseudo, setPseudo] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [champsValides, setChampsValides] = useState(false)
-  const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [showLoader,setShowLoader] = useState(false)
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  const [isConfirmPasswordFocused, setIsConfirmPasswordFocused] = useState(false);
+  const [isPseudoFocused, setIsPseudoFocused] = useState(false);
 
-  const navigate = useNavigate();
-  
-  const verifierChamps = () => {
-    if(pseudo !== '' && password !== '' && email !== '' && confirmPassword !== '' && validateEmail(email) === true && password.length > 5 && password === confirmPassword){
+  const [msgPseudo, setMsgPseudo] = useState('')
+  const [msgEmail, setMsgEmail] = useState('')
+  const [msgPassword, setMsgPassword] = useState('')
+  const [msgConfirmPassword, setMsgConfirmPassword] = useState('')
+
+  useEffect(() => {
+    if(pseudo !== '' && email !== '' && password !== '' && password === confirmPassword){
       setChampsValides(true)
-      setMessage('')
     }else{
       setChampsValides(false)
-        setMessage('')
     }
-  }
+    // eslint-disable-next-line
+  }, [pseudo,email,password,confirmPassword])
 
   useEffect(() => {
-    verifierChamps()
+    if(pseudo === ''){
+      setMsgPseudo('Le pseudo est obligatoire')
+    }else{
+      setMsgPseudo('')
+    }
   }, [pseudo])
 
+
   useEffect(() => {
-    verifierChamps()
-    if(email !== ''){
-      if(!validateEmail(email)){
-          setChampsValides(false)
-          setMessage('Veuillez entrer une adresse email valide')
-      }
+    if(email === ''){
+      setMsgEmail('L\'email est obligatoire')
     }else{
-        setChampsValides(false)
-        setMessage('')
+      setMsgEmail('')
     }
   }, [email])
 
   useEffect(() => {
-    verifierChamps()
-    if (password !== '') {
-      if(password.length > 5){
-          setMessage('')
-          if(password !== confirmPassword){
-            setChampsValides(false)
-            setMessage('Les deux mots de passe ne correspondent pas')
-          }
-      }else{
-          if(password.length <= 5){
-              setChampsValides(false)
-              setMessage('Le mot de passe doit avoir au moins 6 caractères')
-              }
-          }
-      }else{
-          setChampsValides(false)
-          setMessage('')
-      }
-
+    if(password === ''){
+      setMsgPassword('Le mot de passe est obligatoire')
+    }else{
+      setMsgPassword('')
+    }
   }, [password])
 
+  useEffect(() => {
+    if(confirmPassword !== password){
+      setMsgConfirmPassword("Les mots de passe ne correspondent pas")
+    }else{
+      setMsgConfirmPassword('')
+    }
+  }, [confirmPassword, password])
 
   useEffect(() => {
-    verifierChamps()
-    if(password !== confirmPassword){
-      setChampsValides(false)
-      setMessage('Les deux mots de passe ne correspondent pas')
-    }
-  }, [confirmPassword])
-
+    setMsgEmail('')
+    setMsgPseudo('')
+    setMsgPassword('')
+    setMsgConfirmPassword('')
+  }, [])
 
   const handlePseudo = e => {
     setPseudo(e.target.value)
@@ -102,32 +93,6 @@ const SignUp = () => {
     setConfirmPassword(e.target.value)
   }
 
-  const handleSubmit = e => {
-    e.preventDefault();
-    createUserWithEmailAndPassword(auth, email, password)
-    .then( authUser => {
-        return setDoc(user(authUser.user.uid), {
-            pseudo,
-            email
-        });
-    })
-    .then(() => {
-        navigate('/welcome', { replace: true}) //rediriger vers le composant Welcome apres inscription et empecher que l'on revienne en arriere
-        setError('')
-        setPseudo('')
-        setEmail('')
-        setPassword('')
-        setConfirmPassword('')
-    })
-    .catch(error => {
-      setError({
-        ...error,
-        message : 'Une erreur s\'est produite, soit l\'utilisateur existe déjà soit votre connexion internet est instable'
-      });
-        setShowLoader(false)
-    })
-}
-
   // gestion erreurs
   const errorMsg = error === '' ? null : (<span>{error.message}</span>);
   const handleShowLoader = () => {
@@ -135,44 +100,148 @@ const SignUp = () => {
   }
 
   return (
-    <div className='signUpLoginBox'>
-        <div className='slContainer'>
-            <div className='formBoxLeftSignup'></div>
-            <div className='formBoxRight'> 
-              <div className='formContent'>
-                {errorMsg}
-                <h2>Inscription</h2>
-                <form onSubmit={handleSubmit}>
-                  <div className='inputBox'>
-                    <input value={pseudo} onChange={handlePseudo} type="text" id="pseudo" autoComplete='off' required />
-                    <label htmlFor='pseudo'>Pseudo</label>
-                  </div>
-                  <div className='inputBox'>
-                    <input value={email} onChange={handleEmail} type="email" id="email" autoComplete='off' required />
-                    <label htmlFor='email'>Email</label>
-                  </div>
-                  <div className='inputBox'>
-                    <input value={password} onChange={handlePassword} type="password" id="password" autoComplete='off' required />
-                    <label htmlFor='password'>Mot de passe</label>
-                  </div>
-                  <div className='inputBox'>
-                    <input value={confirmPassword} onChange={handleConfirmPassword} type="password" id="confirmPassword" autoComplete='off' required />
-                    <label htmlFor='confirmPassword'>Confirmez le mot de passe</label>
-                  </div>                  
-                  <h6 style={{color: 'red'}}>{message}</h6>
-                  <button disabled={!champsValides} onClick={handleShowLoader}>{showLoader ? 'Chargement...' : 'S\'inscrire'}</button>
-                  {
-                      showLoader && <Loader Mystyle={{width: '15px', height: '15px'}} />
-                  }
-                </form>
-                <div className='linkContainer'>
-                  <Link className='simpleLink' to='/login'>Déjà inscrit ? connectew-vous</Link>
-                </div>
-              </div>
-            </div>
-        </div>
-    </div>
+        <ScrollView style={styles.container}>
+          <View style={{height: '20%'}}>
+            <Header />
+          </View>
+            <View style={styles.signUpLoginBox}>
+                    <View style={styles.slContainer}>
+                        <View style={styles.formBoxRight}>
+                            <View style={styles.formContent}>
+                            {/* {errorMsg} */}
+                            <View style={styles.inputBox}>
+                                <TextInput 
+                                onFocus={() => setIsPseudoFocused(true)}
+                                onBlur={() => setIsPseudoFocused(false)}
+                                style={styles.myInput}
+                                onChangeText={text => setPseudo(text)} 
+                                value={pseudo} />
+                                <Text style={[styles.label, isPseudoFocused || pseudo ? styles.labelActive : null]}>Pseudo</Text>
+                                <Text style={{color: 'red', textAlign: 'center'}}>{msgPseudo}</Text>
+                            </View>
+                            <View style={styles.inputBox}>
+                                <TextInput 
+                                onFocus={() => setIsEmailFocused(true)}
+                                onBlur={() => setIsEmailFocused(false)}
+                                style={styles.myInput}
+                                onChangeText={text => setEmail(text)} 
+                                value={email} />
+                                <Text style={[styles.label, isEmailFocused || email ? styles.labelActive : null]}>Email</Text>
+                                <Text style={{color: 'red', textAlign: 'center'}}>{msgEmail}</Text>
+                            </View>
+                            <View style={styles.inputBox}>
+                                <TextInput 
+                                style={styles.myInput}
+                                onChangeText={text => setPassword(text)}
+                                value={password}
+                                onFocus={() => setIsPasswordFocused(true)}
+                                onBlur={() => setIsPasswordFocused(false)} />
+                                <Text style={[styles.label, isPasswordFocused || password ? styles.labelActive : null]}>Mot de passe</Text>
+                                <Text style={{color: 'red', textAlign: 'center'}}>{msgPassword}</Text>
+                            </View>
+                            <View style={styles.inputBox}>
+                                <TextInput 
+                                  style={styles.myInput}
+                                  onChangeText={text => setConfirmPassword(text)}
+                                  value={confirmPassword}
+                                  onFocus={() => setIsConfirmPasswordFocused(true)}
+                                  onBlur={() => setIsConfirmPasswordFocused(false)} />
+                                <Text style={[styles.label, isConfirmPasswordFocused || confirmPassword ? styles.labelActive : null]}>Confirmez le mot de passe</Text>
+                                
+                                <Text style={{color: 'red', textAlign: 'center'}}>{msgConfirmPassword}</Text>
+                            </View>
+                            <Button color='#4f78a4' disabled={!champsValides} title={showLoader ? 'Chargement...' : 'Inscription'} />   
+                            {
+                                showLoader && <Loader Mystyle={{width: '15px', height: '15px'}} />
+                            }
+                                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                                <Text style={styles.simpleLink}>Déjà inscrit ? connectew-vous{"\n"}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+        </ScrollView>
   )
 }
+
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: 'black',
+    display: 'flex',
+    width: '100%',
+    height: '100%',
+  },
+  signUpLoginBox: {
+      display: 'flex',
+      justifyContent: 'center',
+      width: '100%',
+      height: '100%',
+  },
+  label: {
+      color: '#fff',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      padding: 10,
+      fontSize: 17,
+      pointerEvents: 'none',
+    },
+    labelActive: {
+      top: -30,
+      left: 0,
+      fontSize: 16,
+      fontStyle: 'italic',
+    },
+  myInput: {
+      width: '100%',
+      paddingVertical: 10,
+      fontSize: 17,
+      color: 'blue',
+      textTransform: 'none',
+      fontWeight: 'bold',
+      marginBottom: 30,
+      borderWidth: 0,
+      backgroundColor: 'transparent',
+      borderBottomWidth: 1,
+      borderBottomColor: 'white'
+    },
+  slContainer: {
+      flexGrow: 0,
+      flexShrink: 1,
+      flexBasis: '80%',
+      display: 'flex'
+  },
+  formBoxLeftLogin: {
+      minHeight: 500,
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'center center',
+      flexGrow: 0,
+      flexShrink: 1,
+      flexBasis: '50%'
+  },
+  formBoxRight: {
+      flexGrow: 0,
+      flexShrink: 1,
+      flexBasis: '50%'
+  },
+  formContent: {
+      width: '100%',
+      padding: 20,
+      boxSizing: 'border-box',
+  },
+  inputBox: {
+      position: 'relative',
+      height: 80,
+  },
+
+  simpleLink: {
+      color: 'white',
+      textDecorationLine: 'none',
+      fontSize: 12,
+  },
+
+});
 
 export default SignUp

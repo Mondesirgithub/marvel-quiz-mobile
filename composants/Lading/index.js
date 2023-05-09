@@ -1,51 +1,98 @@
-import React, {useRef, useEffect, useState} from 'react'
-import { Link } from 'react-router-dom';
+import React, {useState} from 'react'
+import { Pressable, StyleSheet, TouchableOpacity } from 'react-native'
+import { ImageBackground, Text, View } from 'react-native'
+import Header from '../Header'
 
-const Lading = () => {
-  const refMain = useRef(null)
-  const [boutons, setBoutons] = useState(false)
-
-  useEffect(() => {
-     // lors du montage, on ajoute les griffres
-     refMain.current.classList.add('startingImg')
-     setTimeout(() => {
-        // Au bout de 1 seconde on retire les griffres
-        refMain.current.classList.remove('startingImg')
-        setBoutons(true)
-     }, 500);
-  }, [])
-
-  const setLeftImage = () => {
-    refMain.current.classList.add('leftImg')
-  }
-
-  const setRightImage = () => {
-    refMain.current.classList.add('rightImg')
-  }
-
-  const clearImage = () => {
-    if(refMain.current.classList.contains('leftImg')){
-        refMain.current.classList.remove('leftImg')
-    }else if(refMain.current.classList.contains('rightImg')){
-        refMain.current.classList.remove('rightImg')
-    }
-  }
-
-  const AfficherBoutons = boutons && <>
-                <div onMouseOver={setLeftImage}
-                onMouseOut={clearImage} className='leftBox'>
-                    <Link className='btn-welcome' to='/signup'>Inscription</Link>
-                </div>
-                <div onMouseOver={setRightImage} onMouseOut={clearImage} className='rightBox'>
-                    <Link className='btn-welcome' to='/login'>Connexion</Link>
-                </div>
-            </>
-  
+const Lading = ({navigation}) => {
   return (
-    <main ref={refMain} className='welcomePage'>
-        {AfficherBoutons}
-    </main>
+    <View style={{display: 'flex', flexDirection: 'column', height:'100%'}}>
+      <View style={{height: '20%'}}>
+        <Header />
+      </View>
+      <View style={styles.welcomePage}>
+          <View style={styles.leftBox}>
+            <Pressable 
+              onPress={() => navigation.navigate('SignUp')}
+              style={({ pressed }) => [
+                { backgroundColor: pressed ? 'white' : 'black' },
+                { opacity: pressed ? 0.3 : 1 },
+                styles.btnWelcome
+              ]}
+              >
+              <Text style={{color: 'white', textAlign: 'center'}}>Inscription</Text>
+            </Pressable>
+          </View>
+          <TouchableOpacity onPress={() => navigation.navigate("Quiz")}>
+            <Text style={{color: 'white', textAlign: 'center'}}>Je le ferai plus tard</Text>
+          </TouchableOpacity>
+          <View style={styles.rightBox}>
+            <Pressable 
+              onPress={() => navigation.navigate('Login')}
+              style={({ pressed }) => [
+                { backgroundColor: pressed ? 'white' : 'black' },
+                { opacity: pressed ? 0.3 : 1 },
+                styles.btnWelcome
+              ]}
+              >
+              <Text style={{color : 'white', textAlign: 'center'}}>Connexion</Text>
+            </Pressable>
+          </View>
+      </View>
+    </View>
   )
 }
+
+
+const styles = StyleSheet.create({
+  myText: {
+    color: '#fff',
+    textAlign: 'center',  
+    fontSize: 40,
+    marginTop: 20
+  },
+  welcomePage: {
+    backgroundColor: 'transparent',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '80%',
+    backgroundColor: '#4f78a4',
+  },
+  btnWelcome: {
+    borderWidth: 3,
+    borderColor: 'white',    
+    color: 'white',
+    width: 200,
+    paddingLeft: 12,
+    paddingRight: 12,
+    paddingTop: 25,
+    paddingBottom: 25,
+    borderRadius: 5,
+    backgroundColor: 'transparent',
+    fontWeight: 'normal',
+    fontSize: 19,
+    textAlign: 'center',
+    textDecorationLine: 'none',
+    marginTop: 0,
+  },
+  leftBox: {
+    display: 'flex',
+    flexGrow: 0,
+    flexShrink: 1,
+    flexBasis: '40%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rightBox: {
+    display: 'flex',
+    flexGrow: 0,
+    flexShrink: 1,
+    flexBasis: '40%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
+
 
 export default Lading

@@ -1,10 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import {useEffect, useState, memo} from 'react'
+import { View, Text, ScrollView, StyleSheet, ImageBackground } from 'react-native'
+import {useEffect, useState, memo} from 'react' 
 import Level from '../Level'
 import ProgressBar from '../ProgressBar'
 import Questions from '../Questions'
 import {QuizMarvel} from '../quizMarvel'
-import 'react-toastify/dist/ReactToastify.css';
+// import Header from '../Header';
 import QuizOver from '../QuizOver'
 
 
@@ -31,24 +32,31 @@ const Quiz = ({error, userData,afficherNotif}) => {
   })
   const [answersUser, setAnswersUser] = useState({})
   const [score, setScore] = useState(0)
-  const [notif, setNotif] = useState(false)
+
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState(null);
+
+
+  const handleSelectedOption = index => {
+    
+    setSelectedOptionIndex(index);
+
+    setSelectedOption(prevState => ({
+      ...prevState,
+      // prevReponse: ajouterElement(prevState.prevReponse, questions[numeroQuestion].options[index]),
+      actuelReponse: questions[numeroQuestion].options[index],
+      etat : true
+    }))
+
+    setAnswersUser(prevState => ({
+      ...prevState,
+        [numeroQuestion] : selectedOption.prevReponse.length === 0 ? null : selectedOption.prevReponse[selectedOption.prevReponse.length-1]
+      }
+    ))
+  };
+
+  // const [notif, setNotif] = useState(false)
 
  
-
-  useEffect(() => {
-      if(userData.pseudo !== undefined){
-        setNotif(true)
-      }
-      
-  }, [userData])
-
-  useEffect(() => {
-    if(notif){
-      afficherNotif(`Salut ${userData.pseudo} et bonne chance 😉`,'default')
-      setNotif(false)
-    }    
-  },[notif])
-
   useEffect(() => {
     const questions = level === 0 ? QuizMarvel[0].quizz.debutant : (level === 1 ? QuizMarvel[0].quizz.confirme : QuizMarvel[0].quizz.expert)
     setQuestions(questions)
@@ -75,8 +83,6 @@ const Quiz = ({error, userData,afficherNotif}) => {
 
   }, [level, numeroQuestion])
 
-  const lesOptions = document.querySelectorAll('p.answerOptions')
-
   const precedent = () => {
     setNumeroQuestion(numeroQuestion - 1)
     setSelectedOption(prevState => ({
@@ -85,6 +91,7 @@ const Quiz = ({error, userData,afficherNotif}) => {
       actuelReponse : prevState.prevReponse.length === 0 ? null : prevState.prevReponse.pop(),
       etat : true
     }))
+   
   }
 
   const niveauSuivant = () => {
@@ -104,6 +111,7 @@ const Quiz = ({error, userData,afficherNotif}) => {
 
   const suivant = () => {
     if(numeroQuestion === 9){
+      console.log("USER => ", answersUser)
       setNumeroQuestion(numeroQuestion + 1)
       let sum = 0
       for(let i in answersUser){
@@ -123,40 +131,17 @@ const Quiz = ({error, userData,afficherNotif}) => {
     setSelectedOption(prevState => ({
       ...prevState,
       etat : prevState.actuelReponse === null ? false : true
-    }))    
+    }))  
   }
 
-
-  const handleSelectedOption = e => {
-    e.target.style.backgroundColor = '#4f78a4'
-
-    setSelectedOption(prevState => ({
-      ...prevState,
-      prevReponse: ajouterElement(prevState.prevReponse, e.target),
-      actuelReponse: e.target,
-      etat : true
-    }))
-
-    setAnswersUser(prevState => ({
-      ...prevState,
-        [numeroQuestion] : selectedOption.prevReponse.length === 0 ? null : selectedOption.prevReponse[selectedOption.prevReponse.length-1].textContent
-      }
-    ))
-  }
-
-
+  useEffect(() => {    
     if(!selectedOption.actuelReponse){
-      for(let i = 0; i < lesOptions.length; i++){
-        lesOptions[i].style.backgroundColor = ''
-      }
+      setSelectedOptionIndex(null)
     }else{
-      selectedOption.actuelReponse.style.backgroundColor = '#4f78a4'
-      for(let i = 0; i < lesOptions.length; i++){
-        if(lesOptions[i].style.backgroundColor === 'rgb(79, 120, 164)' && lesOptions[i] !== selectedOption.actuelReponse){
-          lesOptions[i].style.backgroundColor = ''
-        }
-      }
+      setSelectedOptionIndex(questions[numeroQuestion].options.findIndex(option => option === selectedOption.actuelReponse))
     }
+  }, [selectedOption])
+
 
     return numeroQuestion === questions.length ? (
       <QuizOver questions={questions} answersUser={answersUser} 
@@ -167,18 +152,45 @@ const Quiz = ({error, userData,afficherNotif}) => {
         level={level}
         />
     ) : (
-    <div>
+    <ScrollView>
       <Level level={level} />
       <ProgressBar numeroQuestion={numeroQuestion} questions={questions} />
       <Questions selectedOption={selectedOption} 
         suivant={suivant}
         precedent={precedent}
-        firstLastQuestion={firstLastQuestion}
+        selectedOptionIndex={selectedOptionIndex}
         handleSelectedOption={handleSelectedOption}
+        firstLastQuestion={firstLastQuestion}
         question={questions[numeroQuestion]} />
-    </div>
+    </ScrollView>
   )
-  
 }
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: 'white',
+    display: 'flex',
+    flexDirection: 'column',
+    width: '100%',
+    height: '100%',
+},
+answerOptions: {
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  backgroundColor: '#f2f2f2',
+  lineHeight: 20,
+  textAlign: 'left',
+  borderWidth: 0,
+  color: '#000',
+  fontWeight: 'bold',
+  borderRadius: 5,
+  marginVertical: 5,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+selectedOption: {
+  backgroundColor: '#4f78a4',
+}
+})
 
 export default memo(Quiz)

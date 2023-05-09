@@ -1,10 +1,8 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect } from 'react'
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { Link, useNavigate } from 'react-router-dom';
-import { auth } from '../Firebase/firebase';
-import Loader from '../Loader';
-
+import React, {useState, useEffect} from 'react'
+import { Text, View, StyleSheet, TextInput, TouchableOpacity, ImageBackground, Button, ScrollView } from 'react-native';
+import Loader from '../Loader'
+import Header from '../Header';
+  
 
 function validateEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -12,125 +10,186 @@ function validateEmail(email) {
   }
   
 
-const Login = () => {
 
-  const navigate = useNavigate();
+const Login = ({navigation}) => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [btn, setBtn] = useState(false);
+    const [error, setError] = useState('');
+    const [showLoader,setShowLoader] = useState(false)
+    const [message, setMessage] = useState('')
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [btn, setBtn] = useState(false);
-  const [error, setError] = useState('');
-  const [showLoader,setShowLoader] = useState(false)
-  const [message, setMessage] = useState('')
+    const [isEmailFocused, setIsEmailFocused] = useState(false);
+    const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
-  useEffect(() => {
-
-    if(password !== '' && email !== '' && validateEmail(email) === true && password.length > 5){
-        setBtn(true)
-        setMessage('')
-    }else{
-        setBtn(false)
-        setMessage('')
-    }
-
-    if (password !== '') {
-        if(password.length > 5){
-            setMessage('')
+    const [msgEmail, setMsgEmail] = useState('')
+    const [msgPassword, setMsgPassword] = useState('')
+  
+    useEffect(() => {
+        if(email !== '' && password !== ''){
+          setBtn(true)
         }else{
-            if(password.length <= 5){
-            setBtn(false)
-            setMessage('Le mot de passe doit avoir au moins 6 caractères')
-            }
+          setBtn(false)
         }
-    }else{
-        setBtn(false)
-        setMessage('')
-    }
-}, [password])
-
-useEffect(() => {
-    if(password !== '' && email !== '' && validateEmail(email) === true && password.length > 5){
-        setBtn(true)
-        setMessage('')
-    }else{
-        setBtn(false)
-        setMessage('')
-    }
-
-    if(email !== ''){
-        if(!validateEmail(email)){
-            setBtn(false)
-            setMessage('Veuillez entrer une adresse email valide')
+        // eslint-disable-next-line
+      }, [email,password])
+    
+      useEffect(() => {
+        if(email === ''){
+          setMsgEmail("L'email est obligatoire")
+        }else{
+          setMsgEmail('')
         }
-    }else{
-        setBtn(false)
-        setMessage('')
+      }, [email])
+  
+      useEffect(() => {
+        if(password === ''){
+          setMsgPassword("Le mot de passe est obligatoire")
+        }else{
+          setMsgPassword('')
+        }
+      }, [password])
+  
+      useEffect(() => {
+        setMsgEmail('')
+        setMsgPassword('')
+        setError('')
+      }, [])
+    const errorMsg = error === '' ? null : <span>{error}</span>
+  
+    const handleShowLoader = () => {
+      setShowLoader(true)
     }
-}, [email])
 
-  const handleSubmit = e => {
-      e.preventDefault();
-
-      signInWithEmailAndPassword(auth, email, password)
-      .then(user => {
-          navigate('/welcome', { replace: true}); // replace: true, pour empecher de revenir en arriere
-          setError('')
-          setEmail('');
-          setPassword('');
-      })
-      .catch(error => {
-          setError({
-            ...error,
-            message : 'Mot de passe et/ou adresse email incorrect(s), réessayer !'
-          });
-          setShowLoader(false)
-      })
-
-  }
-
-  const errorMsg = error === '' ? null : <span>{error.message}</span>
-
-  const handleShowLoader = () => {
-    setShowLoader(true)
-  }
   return (
-      <div className="signUpLoginBox">
-          <div className="slContainer">
-              <div className="formBoxLeftLogin">
-              </div>
-              <div className="formBoxRight">
-                  <div className="formContent">
-
-                      {errorMsg}
-
-                      <h2>Connexion</h2>
-                      <form onSubmit={handleSubmit}>
-
-                          <div className="inputBox">
-                              <input onChange={e => setEmail(e.target.value)} value={email} type="email" autoComplete="off" required />
-                              <label htmlFor="email">Email</label>
-                          </div>
-
-                          <div className="inputBox">
-                              <input onChange={e => setPassword(e.target.value)} value={password} type="password" autoComplete="off" required />
-                              <label htmlFor="password">Mot de passe</label>
-                          </div>
-                          <h6 style={{color: 'red'}}>{message}</h6>
-                          <button disabled={!btn} onClick={handleShowLoader}>{showLoader ? 'Chargement...' : 'Connexion'}</button>
-                          {
-                            showLoader && <Loader Mystyle={{width: '15px', height: '15px'}} />
-                          }
-
-                      </form>
-                      <div className="linkContainer">
-                          <Link className="simpleLink" to="/signup">Nouveau sur Marvel Quiz ? Inscrivez-vous maintenant.</Link><br />
-                          <Link className="simpleLink" to="/forgotPassword">Mot de passe oublié</Link>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
+        <ScrollView style={styles.container}>
+            <View style={{height: '20%'}}>
+              <Header />
+            </View>
+            <View style={styles.signUpLoginBox}>
+                    <View style={styles.slContainer}>
+                        <View style={styles.formBoxRight}>
+                            <View style={styles.formContent}>
+                            {/* {errorMsg} */}
+                            <View style={styles.inputBox}>
+                                <TextInput 
+                                onFocus={() => setIsEmailFocused(true)}
+                                onBlur={() => setIsEmailFocused(false)}
+                                style={styles.myInput}
+                                onChangeText={text => setEmail(text)} 
+                                value={email} />
+                                <Text style={[styles.label, isEmailFocused || email ? styles.labelActive : null]}>Email</Text>
+                            </View>
+                            <Text style={{color: 'red', textAlign: 'center'}}>{msgEmail}</Text>
+                            <View style={styles.inputBox}>
+                                <TextInput 
+                                style={styles.myInput}
+                                onChangeText={text => setPassword(text)}
+                                value={password}
+                                onFocus={() => setIsPasswordFocused(true)}
+                                onBlur={() => setIsPasswordFocused(false)} />
+                                <Text style={[styles.label, isPasswordFocused || password ? styles.labelActive : null]}>Mot de passe</Text>
+                            </View>
+                            <Text style={{color: 'red', textAlign: 'center'}}>{msgPassword}</Text>
+                            <Button color='#4f78a4' disabled={!btn} title={showLoader ? 'Chargement...' : 'Connexion'} />   
+                            {
+                                showLoader && <Loader Mystyle={{width: '15px', height: '15px'}} />
+                            }
+                            <Text style={{color: 'red', textAlign: 'center'}}>{message}</Text>
+                        
+                                <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                                    <Text style={styles.simpleLink}>Nouveau sur Marvel Quiz ? Inscrivez-vous maintenant.{"\n"}</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                                    <Text style={styles.simpleLink}>Mot de passe oublié ?</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+        </ScrollView>
   )
 }
+
+
+const styles = StyleSheet.create({
+    container: {
+        backgroundColor: 'black',
+        display: 'flex',
+        width: '100%',
+        height: '100%',
+    },
+    signUpLoginBox: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        display: 'flex',
+        justifyContent: 'center',
+        width: '100%',
+        height: '100%',
+    },
+    label: {
+        color: '#fff',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        padding: 10,
+        fontSize: 17,
+        pointerEvents: 'none',
+      },
+      labelActive: {
+        top: -30,
+        left: 0,
+        fontSize: 16,
+        fontStyle: 'italic',
+      },
+    myInput: {
+        width: '100%',
+        paddingVertical: 10,
+        fontSize: 17,
+        color: 'blue',
+        textTransform: 'none',
+        fontWeight: 'bold',
+        marginBottom: 30,
+        borderWidth: 0,
+        backgroundColor: 'transparent',
+        borderBottomWidth: 1,
+        borderBottomColor: 'white'
+      },
+    slContainer: {
+        flexGrow: 0,
+        flexShrink: 1,
+        flexBasis: '80%',
+        display: 'flex'
+    },
+    formBoxLeftLogin: {
+        minHeight: 500,
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center center',
+        flexGrow: 0,
+        flexShrink: 1,
+        flexBasis: '50%'
+    },
+    formBoxRight: {
+        flexGrow: 0,
+        flexShrink: 1,
+        flexBasis: '50%'
+    },
+    formContent: {
+        width: '100%',
+        padding: 20,
+        boxSizing: 'border-box',
+    },
+    inputBox: {
+        position: 'relative',
+        height: 80,
+    },
+
+    simpleLink: {
+        color: 'white',
+        textDecorationLine: 'none',
+        fontSize: 12,
+    },
+
+});
+
 
 export default Login

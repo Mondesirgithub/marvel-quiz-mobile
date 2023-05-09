@@ -1,29 +1,55 @@
-import React from 'react'
-import Stepper from 'react-stepper-horizontal'
+import React, { useState } from 'react'
+import { Button, View, StyleSheet } from 'react-native'
+import StepIndicator from 'react-native-step-indicator';
 
-const Level = ({level}) => {
+const labels = ["Débutant","Confirmé","Expert"];
+const customStyles = {
+  stepIndicatorSize: 10,
+  currentStepIndicatorSize:45,
+  separatorStrokeWidth: 2,
+  currentStepStrokeWidth: 3,
+  stepStrokeCurrentColor: '#4f78a4',
+  stepStrokeWidth: 3,
+  stepStrokeFinishedColor: '#4f78a4',
+  stepStrokeUnFinishedColor: '#aaaaaa',
+  separatorFinishedColor: '#4f78a4',
+  separatorUnFinishedColor: '#aaaaaa',
+  stepIndicatorFinishedColor: '#4f78a4',
+  stepIndicatorUnFinishedColor: '#ffffff',
+  stepIndicatorCurrentColor: '#4f78a4',
+  stepIndicatorLabelFontSize: 13,
+  currentStepIndicatorLabelFontSize: 13,
+  stepIndicatorLabelCurrentColor: '#fff',
+  stepIndicatorLabelFinishedColor: '#4f78a4',
+  stepIndicatorLabelUnFinishedColor: '#aaaaaa',
+  labelColor: '#4f78a4',
+  labelSize: 13,
+  currentStepLabelColor: '#4f78a4'
+} 
+
+const Level = ({level = 0}) => {
+  
+  const [currentPosition, setCurrentPosition] = useState(level)
+
   return (
-    <div className='levelsContainer'>
-      <Stepper steps={ [
-        {title: 'Débutant'}, 
-        {title: 'Confirmé'}, 
-        {title: 'Expert'}, 
-        ] 
-        } 
-        activeStep={ level }
-        circleTop={0}
-        activeTitleColor={'#4f78a4'}
-        activeColor={'#4f78a4'}
-        completeTitleColor={'#4f78a4'}
-        defaultTitleColor={'#4f78a4'}
-        completeColor={'#4f78a4'}
-        completeBarColor={'#4f78a4'}
-        barStyle={'dashed'}
-        size={45}
-        circleFontSize={20}
-        />
-    </div>
+    <View style={styles.levelsContainer}>
+        <StepIndicator
+            stepCount={labels.length}
+            customStyles={customStyles}
+            currentPosition={currentPosition}
+            labels={labels}
+        /> 
+        {/* <Button  title='Next' onPress={() => setCurrentPosition(currentPosition+1)} /> */}
+    </View>
   )
 }
+
+const styles = StyleSheet.create({
+  levelsContainer: {
+    backgroundColor: '#F5F5F5',
+    padding: 20,
+    marginBottom: 40,
+  },
+});
 
 export default Level
