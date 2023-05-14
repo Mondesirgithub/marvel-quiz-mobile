@@ -23,7 +23,7 @@ const Questions = ({suivant, precedent, question, selectedOption, firstLastQuest
 
   return (
       <View>
-        <Text style={{fontWeight: 'bold', fontSize: 16}}>{question?.question}</Text>
+        <Text style={{fontWeight: 'bold', fontSize: 16, marginLeft: 20, textAlign: 'center'}}>{question?.question}</Text>
         {
          Array.isArray(question?.options) && 
          question?.options.map((option, index) => {
@@ -33,7 +33,7 @@ const Questions = ({suivant, precedent, question, selectedOption, firstLastQuest
                           selectedOptionIndex === index && styles.selectedOption,
                         ]}
                         onPress={() => handleSelectedOption(index)}>
-                      <Text style={{color: 'black', textAlign: 'center'}}>{option}</Text>
+                      <Text style={{color: 'black', textAlign: 'center',fontWeight: selectedOptionIndex === index ? 'bold' : 'normal', textTransform: selectedOptionIndex === index ? 'uppercase' : 'capitalize'}}>{option}</Text>
                     </TouchableOpacity>)
           })
         } 

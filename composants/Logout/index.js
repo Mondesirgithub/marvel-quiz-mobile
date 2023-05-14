@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { signOut } from "firebase/auth";
 import { auth } from '../Firebase/firebase';
-import { useNavigate } from 'react-router-dom';
+import { Switch, View,StyleSheet,Text } from 'react-native';
 
 
-
-const Logout = ({afficherMonMessage}) => {
-
-    const navigate = useNavigate();
+const Logout = ({navigation}) => {
 
     const [checked, setChecked] = useState(false);
     const [error, setError] = useState('')
@@ -15,39 +12,42 @@ const Logout = ({afficherMonMessage}) => {
     useEffect(() => {
         if (checked) {
             signOut(auth).then(() => {
-                setTimeout(() => {
-                    navigate('/', {replace: true})
-                }, 500);
+                navigation.replace('Landing')
             }).catch((error) => {
                 setError(error)
             });
         }
-    }, [checked, navigate]);
+    }, [checked]);
 
-    const handleChange = event => {
-        setChecked(event.target.checked);
+    const handleChange = value => {
+        setChecked(value);
     }
 
 
     return (
-        <div className="logoutContainer">
-            {
-                error === '' ? null : <span>{error.message}</span>
-            }
-            <div style={{display: 'flex'}}>
-            <label style={{margin: '8px 5px 5px 0px'}}>Déconnexion</label>
-            <label className="switch">
-                <input
-                    onChange={handleChange}
-                    type="checkbox"
-                    onClick={afficherMonMessage}
-                    checked={checked}
-                />
-                <span className="slider round" data-tip="Déconnexion"></span>
-            </label>
-            </div>
-        </div>
+        <View className="logoutContainer">
+            <View style={{display: 'flex', flexDirection: 'row'}}>
+                <Text style={{marginLeft:'60%', marginTop: 1, marginRight:5, marginBottom: 0}}>Déconnexion</Text>
+                <View style={styles.switch}>
+                    <Switch
+                        value={checked}
+                        onValueChange={handleChange}
+                    />
+                </View>
+            </View>
+        </View>
     )
 }
+
+
+
+const styles = StyleSheet.create({
+    switch: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      marginTop: -15,
+    },
+  });
 
 export default React.memo(Logout)

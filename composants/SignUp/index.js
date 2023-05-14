@@ -2,6 +2,10 @@
 import React, {useState, useEffect } from 'react'
 import { Text, View, TextInput, StyleSheet, Button, TouchableOpacity, ScrollView, ImageBackground } from 'react-native'
 import Header from '../Header';
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from '../Firebase/firebase';
+import { setDoc } from 'firebase/firestore';
+import { user } from '../Firebase/firebase';
 
 function validateEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -29,7 +33,7 @@ const SignUp = ({navigation}) => {
   const [msgConfirmPassword, setMsgConfirmPassword] = useState('')
 
   useEffect(() => {
-    if(pseudo !== '' && email !== '' && password !== '' && password === confirmPassword){
+    if(pseudo !== '' && email !== '' && validateEmail(email) && password !== '' && password === confirmPassword){
       setChampsValides(true)
     }else{
       setChampsValides(false)
@@ -50,7 +54,11 @@ const SignUp = ({navigation}) => {
     if(email === ''){
       setMsgEmail('L\'email est obligatoire')
     }else{
-      setMsgEmail('')
+      if(!validateEmail(email)){
+        setMsgEmail('L\'email n\'est pas valide')
+      }else{
+        setMsgEmail('')
+      }
     }
   }, [email])
 
@@ -77,86 +85,95 @@ const SignUp = ({navigation}) => {
     setMsgConfirmPassword('')
   }, [])
 
-  const handlePseudo = e => {
-    setPseudo(e.target.value)
-  }
-  
-  const handleEmail = e => {
-    setEmail(e.target.value)
-  }
-  
-  const handlePassword = e => {
-    setPassword(e.target.value)
-  }
-  
-  const handleConfirmPassword = e => {
-    setConfirmPassword(e.target.value)
-  }
 
   // gestion erreurs
-  const errorMsg = error === '' ? null : (<span>{error.message}</span>);
+  const errorMsg = error === '' ? null : <Text style={styles.msgError}>{error.message}</Text>
+
   const handleShowLoader = () => {
     setShowLoader(true)
+    createUserWithEmailAndPassword(auth, email, password)
+    .then( authUser => {
+        return setDoc(user(authUser.user.uid), {
+            pseudo,
+            email
+        });
+    })
+    .then(authUser => {
+        navigation.replace('Quiz', { user: authUser.user }); 
+        ToastAndroid.showWithGravity(`Salut ${authUser.user.email} et bonne chance 😉`, ToastAndroid.LONG, ToastAndroid.TOP_RIGHT)
+        setError('')
+        setPseudo('')
+        setEmail('')
+        setPassword('')
+        setConfirmPassword('')
+    })
+    .catch(error => {
+      setError({
+        ...error,
+        message : 'Une erreur s\'est produite, soit l\'utilisateur existe déjà soit votre connexion internet est instable'
+      });
+        setShowLoader(false)
+    })
   }
 
   return (
         <ScrollView style={styles.container}>
-          <View style={{height: '20%'}}>
+          <View style={{height: '15%'}}>
             <Header />
           </View>
             <View style={styles.signUpLoginBox}>
                     <View style={styles.slContainer}>
                         <View style={styles.formBoxRight}>
-                            <View style={styles.formContent}>
-                            {/* {errorMsg} */}
-                            <View style={styles.inputBox}>
-                                <TextInput 
-                                onFocus={() => setIsPseudoFocused(true)}
-                                onBlur={() => setIsPseudoFocused(false)}
-                                style={styles.myInput}
-                                onChangeText={text => setPseudo(text)} 
-                                value={pseudo} />
-                                <Text style={[styles.label, isPseudoFocused || pseudo ? styles.labelActive : null]}>Pseudo</Text>
-                                <Text style={{color: 'red', textAlign: 'center'}}>{msgPseudo}</Text>
-                            </View>
-                            <View style={styles.inputBox}>
-                                <TextInput 
-                                onFocus={() => setIsEmailFocused(true)}
-                                onBlur={() => setIsEmailFocused(false)}
-                                style={styles.myInput}
-                                onChangeText={text => setEmail(text)} 
-                                value={email} />
-                                <Text style={[styles.label, isEmailFocused || email ? styles.labelActive : null]}>Email</Text>
-                                <Text style={{color: 'red', textAlign: 'center'}}>{msgEmail}</Text>
-                            </View>
-                            <View style={styles.inputBox}>
-                                <TextInput 
-                                style={styles.myInput}
-                                onChangeText={text => setPassword(text)}
-                                value={password}
-                                onFocus={() => setIsPasswordFocused(true)}
-                                onBlur={() => setIsPasswordFocused(false)} />
-                                <Text style={[styles.label, isPasswordFocused || password ? styles.labelActive : null]}>Mot de passe</Text>
-                                <Text style={{color: 'red', textAlign: 'center'}}>{msgPassword}</Text>
-                            </View>
-                            <View style={styles.inputBox}>
-                                <TextInput 
+                              <View style={styles.formContent}>
+                              {/* {errorMsg} */}
+                              <View style={styles.inputBox}>
+                                  <TextInput 
+                                  onFocus={() => setIsPseudoFocused(true)}
+                                  onBlur={() => setIsPseudoFocused(false)}
                                   style={styles.myInput}
-                                  onChangeText={text => setConfirmPassword(text)}
-                                  value={confirmPassword}
-                                  onFocus={() => setIsConfirmPasswordFocused(true)}
-                                  onBlur={() => setIsConfirmPasswordFocused(false)} />
-                                <Text style={[styles.label, isConfirmPasswordFocused || confirmPassword ? styles.labelActive : null]}>Confirmez le mot de passe</Text>
-                                
-                                <Text style={{color: 'red', textAlign: 'center'}}>{msgConfirmPassword}</Text>
-                            </View>
-                            <Button color='#4f78a4' disabled={!champsValides} title={showLoader ? 'Chargement...' : 'Inscription'} />   
-                            {
-                                showLoader && <Loader Mystyle={{width: '15px', height: '15px'}} />
-                            }
-                                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                                  onChangeText={text => setPseudo(text)} 
+                                  value={pseudo} />
+                                  <Text style={[styles.label, isPseudoFocused || pseudo ? styles.labelActive : null]}>Pseudo</Text>
+                                  <Text style={{color: 'red', textAlign: 'center', marginTop: -20}}>{msgPseudo}</Text>
+                              </View>
+                              <View style={styles.inputBox}>
+                                  <TextInput 
+                                  onFocus={() => setIsEmailFocused(true)}
+                                  onBlur={() => setIsEmailFocused(false)}
+                                  style={styles.myInput}
+                                  onChangeText={text => setEmail(text)} 
+                                  value={email} />
+                                  <Text style={[styles.label, isEmailFocused || email ? styles.labelActive : null]}>Email</Text>
+                                  <Text style={{color: 'red', textAlign: 'center',marginTop: -20}}>{msgEmail}</Text>
+                              </View>
+                              <View style={styles.inputBox}>
+                                  <TextInput 
+                                  style={styles.myInput}
+                                  onChangeText={text => setPassword(text)}
+                                  value={password}
+                                  onFocus={() => setIsPasswordFocused(true)}
+                                  onBlur={() => setIsPasswordFocused(false)} />
+                                  <Text style={[styles.label, isPasswordFocused || password ? styles.labelActive : null]}>Mot de passe</Text>
+                                  <Text style={{color: 'red', textAlign: 'center',marginTop: -20}}>{msgPassword}</Text>
+                              </View>
+                              <View style={styles.inputBox}>
+                                  <TextInput 
+                                    style={styles.myInput}
+                                    onChangeText={text => setConfirmPassword(text)}
+                                    value={confirmPassword}
+                                    onFocus={() => setIsConfirmPasswordFocused(true)}
+                                    onBlur={() => setIsConfirmPasswordFocused(false)} />
+                                  <Text style={[styles.label, isConfirmPasswordFocused || confirmPassword ? styles.labelActive : null]}>Confirmez le mot de passe</Text>
+                                  <Text style={{color: 'red', textAlign: 'center',marginTop: -20}}>{msgConfirmPassword}</Text>
+                              </View>
+                              <Button color='#4f78a4' onPress={handleShowLoader} disabled={!champsValides} title={showLoader ? 'Chargement...' : 'Inscription'} />   
+                              {
+                                  showLoader && <Loader Mystyle={{width: '15px', height: '15px'}} />
+                              }
+                              <TouchableOpacity style={{marginBottom: 50}} onPress={() => navigation.navigate('Login')}>
                                 <Text style={styles.simpleLink}>Déjà inscrit ? connectew-vous{"\n"}</Text>
-                                </TouchableOpacity>
+                              </TouchableOpacity>
+                                
                             </View>
                         </View>
                     </View>
@@ -169,15 +186,13 @@ const SignUp = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'black',
-    display: 'flex',
     width: '100%',
-    height: '100%',
+    height: '100%'
   },
   signUpLoginBox: {
-      display: 'flex',
       justifyContent: 'center',
       width: '100%',
-      height: '100%',
+      height: '80%',
   },
   label: {
       color: '#fff',
@@ -198,7 +213,7 @@ const styles = StyleSheet.create({
       width: '100%',
       paddingVertical: 10,
       fontSize: 17,
-      color: 'blue',
+      color: '#4f78a4',
       textTransform: 'none',
       fontWeight: 'bold',
       marginBottom: 30,
@@ -211,7 +226,6 @@ const styles = StyleSheet.create({
       flexGrow: 0,
       flexShrink: 1,
       flexBasis: '80%',
-      display: 'flex'
   },
   formBoxLeftLogin: {
       minHeight: 500,
@@ -224,7 +238,7 @@ const styles = StyleSheet.create({
   formBoxRight: {
       flexGrow: 0,
       flexShrink: 1,
-      flexBasis: '50%'
+      flexBasis: '50%',
   },
   formContent: {
       width: '100%',
@@ -234,12 +248,22 @@ const styles = StyleSheet.create({
   inputBox: {
       position: 'relative',
       height: 80,
+      marginTop: 30
   },
-
   simpleLink: {
       color: 'white',
-      textDecorationLine: 'none',
       fontSize: 12,
+      marginTop: 30,
+      marginBottom: 30
+  },
+  msgError: {
+    color: 'red',
+    textAlign: 'center',
+    borderWidth: 1,
+    borderColor: 'red',
+    padding: 10,
+    marginVertical: 15,
+    marginHorizontal: 0,
   },
 
 });

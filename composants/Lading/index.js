@@ -5,7 +5,7 @@ import Header from '../Header'
 
 const Lading = ({navigation}) => {
   return (
-    <View style={{display: 'flex', flexDirection: 'column', height:'100%'}}>
+    <View style={{flexDirection: 'column', height:'100%'}}>
       <View style={{height: '20%'}}>
         <Header />
       </View>
@@ -23,7 +23,7 @@ const Lading = ({navigation}) => {
             </Pressable>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate("Quiz")}>
-            <Text style={{color: 'white', textAlign: 'center'}}>Je le ferai plus tard</Text>
+            <Text style={{color: 'white', textAlign: 'center'}}>Je vais creer le compte plus tard, je veux jouer !</Text>
           </TouchableOpacity>
           <View style={styles.rightBox}>
             <Pressable 
@@ -52,7 +52,6 @@ const styles = StyleSheet.create({
   },
   welcomePage: {
     backgroundColor: 'transparent',
-    display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
@@ -77,7 +76,6 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   leftBox: {
-    display: 'flex',
     flexGrow: 0,
     flexShrink: 1,
     flexBasis: '40%',
@@ -85,7 +83,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rightBox: {
-    display: 'flex',
     flexGrow: 0,
     flexShrink: 1,
     flexBasis: '40%',

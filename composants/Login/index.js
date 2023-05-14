@@ -1,8 +1,9 @@
 import React, {useState, useEffect} from 'react'
-import { Text, View, StyleSheet, TextInput, TouchableOpacity, ImageBackground, Button, ScrollView } from 'react-native';
+import { Text, View, StyleSheet, TextInput, TouchableOpacity, ToastAndroid, Button, ScrollView } from 'react-native';
+import { auth } from '../Firebase/firebase';
+import { signInWithEmailAndPassword } from "firebase/auth";
 import Loader from '../Loader'
 import Header from '../Header';
-  
 
 function validateEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -17,16 +18,15 @@ const Login = ({navigation}) => {
     const [btn, setBtn] = useState(false);
     const [error, setError] = useState('');
     const [showLoader,setShowLoader] = useState(false)
-    const [message, setMessage] = useState('')
 
     const [isEmailFocused, setIsEmailFocused] = useState(false);
     const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
     const [msgEmail, setMsgEmail] = useState('')
     const [msgPassword, setMsgPassword] = useState('')
-  
+
     useEffect(() => {
-        if(email !== '' && password !== ''){
+        if(email !== '' && validateEmail(email) && password !== '' && password.length >= 6){
           setBtn(true)
         }else{
           setBtn(false)
@@ -38,7 +38,11 @@ const Login = ({navigation}) => {
         if(email === ''){
           setMsgEmail("L'email est obligatoire")
         }else{
-          setMsgEmail('')
+          if(!validateEmail(email)){
+            setMsgEmail("L'email n'est pas valide")
+          }else{
+            setMsgEmail('')
+          }
         }
       }, [email])
   
@@ -46,7 +50,11 @@ const Login = ({navigation}) => {
         if(password === ''){
           setMsgPassword("Le mot de passe est obligatoire")
         }else{
+          if(password.length < 6){
+            setMsgPassword("Le mot de passe doit être supérieur à 6 caractères")
+          }else{
           setMsgPassword('')
+          }
         }
       }, [password])
   
@@ -55,11 +63,31 @@ const Login = ({navigation}) => {
         setMsgPassword('')
         setError('')
       }, [])
-    const errorMsg = error === '' ? null : <span>{error}</span>
-  
+
+
     const handleShowLoader = () => {
       setShowLoader(true)
+
+        signInWithEmailAndPassword(auth, email, password)
+        .then(user => {
+              navigation.replace('Quiz', { user: user });
+              ToastAndroid.showWithGravity(`Salut ${user.email} et bonne chance 😉`, ToastAndroid.LONG, ToastAndroid.TOP_RIGHT)
+              setError('')
+              setEmail('');
+              setPassword('');
+        })
+        .catch(error => {
+            setError({
+              ...error,
+              message : 'Mot de passe et/ou adresse email incorrect(s), réessayer !'
+            });
+            setShowLoader(false)
+        })
     }
+
+    const errorMsg = error === '' ? null : <Text style={styles.msgError}>{error.message}</Text>
+  
+
 
   return (
         <ScrollView style={styles.container}>
@@ -70,7 +98,7 @@ const Login = ({navigation}) => {
                     <View style={styles.slContainer}>
                         <View style={styles.formBoxRight}>
                             <View style={styles.formContent}>
-                            {/* {errorMsg} */}
+                            {errorMsg}
                             <View style={styles.inputBox}>
                                 <TextInput 
                                 onFocus={() => setIsEmailFocused(true)}
@@ -80,7 +108,7 @@ const Login = ({navigation}) => {
                                 value={email} />
                                 <Text style={[styles.label, isEmailFocused || email ? styles.labelActive : null]}>Email</Text>
                             </View>
-                            <Text style={{color: 'red', textAlign: 'center'}}>{msgEmail}</Text>
+                            <Text style={{color: 'red', textAlign: 'center',marginTop: -20}}>{msgEmail}</Text>
                             <View style={styles.inputBox}>
                                 <TextInput 
                                 style={styles.myInput}
@@ -90,19 +118,18 @@ const Login = ({navigation}) => {
                                 onBlur={() => setIsPasswordFocused(false)} />
                                 <Text style={[styles.label, isPasswordFocused || password ? styles.labelActive : null]}>Mot de passe</Text>
                             </View>
-                            <Text style={{color: 'red', textAlign: 'center'}}>{msgPassword}</Text>
-                            <Button color='#4f78a4' disabled={!btn} title={showLoader ? 'Chargement...' : 'Connexion'} />   
+                            <Text style={{color: 'red', textAlign: 'center',marginTop: -20}}>{msgPassword}</Text>
+                            <Button color='#4f78a4' onPress={handleShowLoader} disabled={!btn} title={showLoader ? 'Chargement...' : 'Connexion'} />   
                             {
                                 showLoader && <Loader Mystyle={{width: '15px', height: '15px'}} />
                             }
-                            <Text style={{color: 'red', textAlign: 'center'}}>{message}</Text>
-                        
-                                <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-                                    <Text style={styles.simpleLink}>Nouveau sur Marvel Quiz ? Inscrivez-vous maintenant.{"\n"}</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                                    <Text style={styles.simpleLink}>Mot de passe oublié ?</Text>
-                                </TouchableOpacity>
+                      
+                            <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                                <Text style={styles.simpleLink}>Nouveau sur Marvel Quiz ? Inscrivez-vous maintenant.{"\n"}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => navigation.navigate('ForgetPassword')}>
+                                <Text style={[styles.simpleLink, {marginTop: -5, marginBottom: 50}]}>Mot de passe oublié ?</Text>
+                            </TouchableOpacity>
                             </View>
                         </View>
                     </View>
@@ -115,16 +142,15 @@ const Login = ({navigation}) => {
 const styles = StyleSheet.create({
     container: {
         backgroundColor: 'black',
-        display: 'flex',
+        flexDirection: 'column',
         width: '100%',
         height: '100%',
     },
     signUpLoginBox: {
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        display: 'flex',
         justifyContent: 'center',
         width: '100%',
-        height: '100%',
+        height: '80%',
     },
     label: {
         color: '#fff',
@@ -145,7 +171,7 @@ const styles = StyleSheet.create({
         width: '100%',
         paddingVertical: 10,
         fontSize: 17,
-        color: 'blue',
+        color: '#4f78a4',
         textTransform: 'none',
         fontWeight: 'bold',
         marginBottom: 30,
@@ -158,7 +184,6 @@ const styles = StyleSheet.create({
         flexGrow: 0,
         flexShrink: 1,
         flexBasis: '80%',
-        display: 'flex'
     },
     formBoxLeftLogin: {
         minHeight: 500,
@@ -181,12 +206,22 @@ const styles = StyleSheet.create({
     inputBox: {
         position: 'relative',
         height: 80,
+        marginTop: 30
     },
-
     simpleLink: {
         color: 'white',
         textDecorationLine: 'none',
         fontSize: 12,
+        marginTop: 30
+    },
+    msgError: {
+      color: 'red',
+      textAlign: 'center',
+      borderWidth: 1,
+      borderColor: 'red',
+      padding: 10,
+      marginVertical: 15,
+      marginHorizontal: 0,
     },
 
 });

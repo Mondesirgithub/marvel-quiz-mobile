@@ -1,12 +1,18 @@
 /* eslint-disable jsx-a11y/img-redundant-alt */
 // import axios from 'axios';
 import { useState, memo, useEffect } from 'react'
-import { StyleSheet, TouchableOpacity } from 'react-native'
+import { StyleSheet, TouchableOpacity, View, Text, ScrollView, Button } from 'react-native'
+import { LogBox } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 // import { FaCheckCircle } from 'react-icons/fa';
 // import { FaTimesCircle } from 'react-icons/fa'
 // import {GiTrophyCup} from 'react-icons/gi'
 // import Loader from '../Loader';
 // import Modal from '../Modal';
+import { Table, Row } from 'react-native-table-component';
+
+
+LogBox.ignoreLogs(['Invalid prop textStyle of type array supplied to Cell']);
 
 const QuizOver = ({questions , answersUser, score, niveauSuivant,rejouer,recommencer, level}) => {
 
@@ -14,8 +20,42 @@ const QuizOver = ({questions , answersUser, score, niveauSuivant,rejouer,recomme
   const [caracterInfos, setCaracterInfos] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // const bravo = <FaCheckCircle color='green'/>
-  // const rate = <FaTimesCircle color='red' />
+  const [tableHead , setTableHead] = useState(['Question', 'Réponses', 'Vos réponses', 'Infos'])
+  // (Array.isArray(questions) &&
+  // questions.map(question => {
+  //   return <tr key={question.id}>
+  //     <td>{question.question}</td>
+  //     <td>{question.answer}  </td>
+  //     <td>{answersUser[question.id]} {answersUser[question.id].toString() === question.answer.toString() ? bravo : rate} </td>
+  //     <td>
+  //       <button onPress={() => afficherModal(question.heroId)} className='btnInfo'>Infos</button>
+  //     </td>
+      
+  //   </tr>
+  // }))
+const lesQuestions = questions.map(item => item.question)
+const lesReponses = questions.map(item => item.answer)
+const lesReponsesUser = questions.map(item => answersUser[item.id])
+
+let data = [];
+
+
+  const [tableData , setTableData] = useState([])
+
+  const bravo = <Icon name="check-circle" color="green" size={20}></Icon>
+  const rate = <Icon name="times-circle" color="red" size={20}></Icon>
+
+  useEffect(() => {
+    for (let i = 0; i < lesQuestions.length; i++) {
+      let row = [];
+      row.push(lesQuestions[i]);
+      row.push(lesReponses[i]);
+      row.push(<Text style={{textAlign: 'center', marginTop: -10}}>{lesReponsesUser[i]}{"\n"}{lesReponsesUser[i] === lesReponses[i] ? bravo : rate}</Text>);
+      row.push(<View style={{marginBottom: 30}}><Button title='Infos' color="#4f78a4" /></View>);
+      data.push(row);
+    }
+    setTableData(data)
+  }, [])
 
   // const API_PUBLIC_KEY = process.env.REACT_APP_MARVEL_APP_KEY
   // const hash = 'ab221b7acbc4b8caf1638489c621dfcb'
@@ -139,70 +179,46 @@ const QuizOver = ({questions , answersUser, score, niveauSuivant,rejouer,recomme
         score < 5 ? (
           <>
           <Text style={[styles.failureMsg , {textAlign: 'center'}]}>Désolé, vous avez échoué 😭</Text>
-          <TouchableOpacity style={[styles.btnResult, styles.success]} onPress={rejouer}><Text>Rejouer</Text></TouchableOpacity>
+          <TouchableOpacity style={[styles.btnResult, styles.success]} onPress={rejouer}><Text style={{color: 'lightgreen', textAlign: 'center'}}>Rejouer</Text></TouchableOpacity>
           </>
         ) 
         : 
         (
         level < 2 ? (
           <>
-          <Text style={styles.successMsg}>Bravo, passez au niveau suivant 😊</Text>
-          <TouchableOpacity style={[styles.btnResult, styles.success]} onPress={niveauSuivant}><Text>Niveau suivant</Text></TouchableOpacity>
+          <Text style={[styles.successMsg, {textAlign: 'center'}]}>Bravo, passez au niveau suivant 😊</Text>
+          <TouchableOpacity style={[styles.btnResult, styles.success]} onPress={niveauSuivant}><Text style={{color: 'lightgreen', textAlign: 'center'}}>Niveau suivant</Text></TouchableOpacity>
           </>
         ) 
         : 
         (
           <>
-          <Text style={styles.successMsg}>Excéllent, vous avez terminé tout le quiz 😎</Text>
-          <TouchableOpacity style={[styles.btnResult, styles.success]} onPress={recommencer}><Text>Recommencez le quizz</Text></TouchableOpacity>
+          <Text style={[styles.successMsg, {textAlign: 'center'}]}>Excéllent, vous avez terminé tout le quiz 😎</Text>
+          <TouchableOpacity style={[styles.btnResult, styles.success]} onPress={recommencer}><Text style={{color: 'lightgreen', textAlign: 'center'}}>Recommencez le quizz</Text></TouchableOpacity>
           </>
         )
         )
       }
     </View>
     <View style={styles.percentage}>
-      <View style={styles.progressPercent}>Réussite: { score * 10 }%</View>
-      <View style={styles.progressPercent}>Note {score}/10</View>
+      <View style={styles.progressPercent}><Text style={{textAlign: 'center'}}>Réussite: { score * 10 }%</Text></View>
+      <View style={styles.progressPercent}><Text style={{textAlign: 'center'}}>Note {score}/10</Text></View>
     </View>
-    <Text>Les réponses aux questions posées :</Text>
-    <View style={[styles.answerContainer, {overflow: 'scroll'}]}>
-      <table className='answers'>
-        <thead>
-          <tr>
-            <th>Question</th>
-            <th>Réponses</th>
-            <th>Vos réponses</th>
-            <th>Infos</th>
-          </tr>
-        </thead>
-        <tbody>
+    <View style={{height: '100%'}}>
+        <View style={styles.container}>
+        <Table style={{overflow: 'scroll', width: '100%', height: '100%'}}>
+          <Row data={tableHead} style={styles.head} textStyle={styles.text}/>
           {
-            score >= 5 ?
-            (Array.isArray(questions) &&
-            questions.map(question => {
-              return <tr key={question.id}>
-                <td>{question.question}</td>
-                <td>{question.answer}  </td>
-                <td>{answersUser[question.id]} {answersUser[question.id].toString() === question.answer.toString() ? bravo : rate} </td>
-                <td>
-                  <button onPress={() => afficherModal(question.heroId)} className='btnInfo'>Infos</button>
-                </td>
-                
-              </tr>
-            }))
-            :
-            (
-              <tr>
-                <td colSpan="4">
-                  <p style={{textAlign: 'center', color: 'red'}}>Vous ne pouvez pas voir les réponses ! car vous n'avez pas eu la moyenne</p>
-                </td>
-              </tr>
-            )
+            (score >= 0) ? (<ScrollView style={{height: '100%', marginBottom: 90}}>
+                {tableData.map((rowData, index) => (
+                  <Row key={index} data={rowData} textStyle={{textAlign: 'center', marginBottom: 30}}/>
+                ))}
+                </ScrollView>):(<Row data={["Vous ne pouvez pas voir les réponses ! car vous n'avez pas eu la moyenne"]} textStyle={{textAlign: 'center', marginBottom: 30, color: 'red'}}/>)
           }
-        </tbody>
-      </table>
+          </Table>
+        </View>
     </View>
-    {ouvrirModal && resultInModal}
+    {/* {ouvrirModal && resultInModal} */}
     </>
   )
 }
@@ -210,11 +226,9 @@ const QuizOver = ({questions , answersUser, score, niveauSuivant,rejouer,recomme
 
 const styles = StyleSheet.create({
   stepsBtnContainer: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingBottom: 10,
-    flexWrap: 'wrap',
+    backgroundColor: 'white',
+    justifyContent: 'center'
   },
   successMsg: {
     color: 'lightgreen',
@@ -227,16 +241,18 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   btnResult: {
-    flex: 0.8,
+    flexGrow: 0,
+    flexShrink: 1,
+    flexBasis: '7%',
+    height: 50,
     fontSize: 15,
-    textTransform: 'uppercase',
     paddingVertical: 9,
     paddingHorizontal: 40,
     borderRadius: 4,
     borderWidth: 2,
     borderColor: 'lightgreen',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    marginLeft: 40,
+    marginRight: 40,
   },
   progressPercent: {
     textAlign: 'center',
@@ -275,6 +291,7 @@ const styles = StyleSheet.create({
   },
   percentage: {
     flexDirection: 'row',
+    backgroundColor: 'white',
     justifyContent: 'space-between',
   },
   answers: {
@@ -313,6 +330,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
   },
+  container: { flex: 1, padding: 16, paddingTop: 30, backgroundColor: '#fff' },
+  head: { backgroundColor: '#4f78a4', paddingTop: 12, paddingBottom: 12 },
+  text: { color: 'white', textTransform: 'uppercase', textAlign: 'center' }
 });
 
 export default memo(QuizOver)

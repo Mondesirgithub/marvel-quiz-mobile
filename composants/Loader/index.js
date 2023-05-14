@@ -1,33 +1,27 @@
 import React from 'react'
-import { Text, View, StyleSheet } from 'react-native'
+import { Text, View, StyleSheet,ActivityIndicator } from 'react-native'
 
 const Loader = ({chargerMsg,styling}) => {
   return (
     <>
-        <View style={styles.loader}></View>
+        {/* <View style={styles.loader}></View>
         <Text style={styling}>
           {chargerMsg}
-        </Text>
+        </Text> */}
+        <View style={styles.container}>
+          <ActivityIndicator size="large" color="#4f78a4" />
+        </View>
     </>
   )
 }
 
 const styles = StyleSheet.create({
-  loader: {
-    borderWidth: 10,
-    borderColor: 'lightgrey',
-    borderRadius: 50,
-    borderTopWidth: 10,
-    borderTopColor: 'blue',
-    width: 50,
-    height: 50,
-    alignSelf: 'center',
-    marginVertical: 20,
-    animationDuration: '1s',
-    animationTimingFunction: 'linear',
-    animationIterationCount: 'infinite',
-    transform: [{rotate: '360deg'}],
-  }
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20
+  },
 })
 
 export default Loader

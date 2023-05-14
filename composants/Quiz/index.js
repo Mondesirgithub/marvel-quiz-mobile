@@ -1,11 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { View, Text, ScrollView, StyleSheet, ImageBackground } from 'react-native'
+import { StyleSheet, ToastAndroid, View } from 'react-native'
 import {useEffect, useState, memo} from 'react' 
 import Level from '../Level'
+import Logout from '../Logout'
 import ProgressBar from '../ProgressBar'
 import Questions from '../Questions'
 import {QuizMarvel} from '../quizMarvel'
-// import Header from '../Header';
 import QuizOver from '../QuizOver'
 
 
@@ -16,7 +16,7 @@ function ajouterElement(tableau, nouvelElement) {
   return tableau;
 }
 
-const Quiz = ({error, userData,afficherNotif}) => {
+const Quiz = ({error, userData, route}) => {
   const [level, setLevel] = useState(0)
   const [numeroQuestion, setNumeroQuestion] = useState(0)
   const [questions, setQuestions] = useState({})
@@ -33,7 +33,12 @@ const Quiz = ({error, userData,afficherNotif}) => {
   const [answersUser, setAnswersUser] = useState({})
   const [score, setScore] = useState(0)
 
+
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(null);
+
+  // const myUser = route.params.user
+
+  console.log("USER => ", route.params)
 
 
   const handleSelectedOption = index => {
@@ -42,19 +47,10 @@ const Quiz = ({error, userData,afficherNotif}) => {
 
     setSelectedOption(prevState => ({
       ...prevState,
-      // prevReponse: ajouterElement(prevState.prevReponse, questions[numeroQuestion].options[index]),
       actuelReponse: questions[numeroQuestion].options[index],
       etat : true
     }))
-
-    setAnswersUser(prevState => ({
-      ...prevState,
-        [numeroQuestion] : selectedOption.prevReponse.length === 0 ? null : selectedOption.prevReponse[selectedOption.prevReponse.length-1]
-      }
-    ))
   };
-
-  // const [notif, setNotif] = useState(false)
 
  
   useEffect(() => {
@@ -111,11 +107,13 @@ const Quiz = ({error, userData,afficherNotif}) => {
 
   const suivant = () => {
     if(numeroQuestion === 9){
-      console.log("USER => ", answersUser)
       setNumeroQuestion(numeroQuestion + 1)
       let sum = 0
       for(let i in answersUser){
-        sum += (answersUser[i].toString() === questions[i].answer.toString())
+        if(answersUser[i] === null){
+        }else{
+        sum += (answersUser[i] === questions[i].answer)
+        }
       }
       setScore(sum)
     }else{
@@ -135,6 +133,12 @@ const Quiz = ({error, userData,afficherNotif}) => {
   }
 
   useEffect(() => {    
+    setAnswersUser(prevState => ({
+      ...prevState,
+        [numeroQuestion] : selectedOption.actuelReponse
+      }
+    )) 
+    
     if(!selectedOption.actuelReponse){
       setSelectedOptionIndex(null)
     }else{
@@ -142,38 +146,51 @@ const Quiz = ({error, userData,afficherNotif}) => {
     }
   }, [selectedOption])
 
+  useEffect(() => {
+  }, [answersUser])
 
     return numeroQuestion === questions.length ? (
-      <QuizOver questions={questions} answersUser={answersUser} 
-        score={score} 
-        niveauSuivant={niveauSuivant} 
-        rejouer={rejouer}
-        recommencer={recommencer}
-        level={level}
-        />
+      <View style={styles.quizBg}>
+        <View style={styles.container}>
+          <QuizOver questions={questions} answersUser={answersUser} 
+            score={score} 
+            niveauSuivant={niveauSuivant} 
+            rejouer={rejouer}
+            recommencer={recommencer}
+            level={level}
+            />
+        </View>
+      </View>
     ) : (
-    <ScrollView>
-      <Level level={level} />
-      <ProgressBar numeroQuestion={numeroQuestion} questions={questions} />
-      <Questions selectedOption={selectedOption} 
-        suivant={suivant}
-        precedent={precedent}
-        selectedOptionIndex={selectedOptionIndex}
-        handleSelectedOption={handleSelectedOption}
-        firstLastQuestion={firstLastQuestion}
-        question={questions[numeroQuestion]} />
-    </ScrollView>
+      <View style={styles.quizBg}>
+        <View style={styles.container}>
+          <Logout/>
+          <Level level={level} />
+          <ProgressBar numeroQuestion={numeroQuestion} questions={questions} />
+          <Questions selectedOption={selectedOption} 
+            suivant={suivant}
+            precedent={precedent}
+            selectedOptionIndex={selectedOptionIndex}
+            handleSelectedOption={handleSelectedOption}
+            firstLastQuestion={firstLastQuestion}
+            question={questions[numeroQuestion]} />
+          </View>
+      </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
-    display: 'flex',
+    backgroundColor: '#ffffff', // la variable --white-color n'est pas valide en React Native
+    padding: 30,
+    flex: 1,
+    flexGrow: 1,
+    flexShrink: 0,
+    flexBasis: '80%',
     flexDirection: 'column',
-    width: '100%',
-    height: '100%',
-},
+    alignItems: 'stretch',
+    height: '100%'
+  },
 answerOptions: {
   paddingVertical: 10,
   paddingHorizontal: 20,
@@ -190,7 +207,14 @@ answerOptions: {
 },
 selectedOption: {
   backgroundColor: '#4f78a4',
-}
+},
+quizBg: {
+  margin: 0,
+  padding: 0,
+  backgroundColor: '#ffffff', // la variable --white-color n'est pas valide en React Native
+  justifyContent: 'center',
+},
+
 })
 
 export default memo(Quiz)
