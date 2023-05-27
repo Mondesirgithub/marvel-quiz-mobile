@@ -2,6 +2,8 @@ import React, {useState, useEffect} from 'react'
 import { Text, View, StyleSheet, TextInput, TouchableOpacity, ImageBackground, Button, ScrollView } from 'react-native';
 import Loader from '../Loader'
 import Header from '../Header';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../Firebase/firebase';
   
 
 function validateEmail(email) {
@@ -16,23 +18,29 @@ const ForgetPassword = ({navigation}) => {
     const [btn, setBtn] = useState(false);
     const [error, setError] = useState('');
     const [showLoader,setShowLoader] = useState(false)
-    const [message, setMessage] = useState('')
-
+    const [success, setSuccess] = useState(null);
     const [isEmailFocused, setIsEmailFocused] = useState(false);
 
     const [msgEmail, setMsgEmail] = useState('')
+
+    useEffect(() => {
+      if(email !== '' && validateEmail(email)){
+        setBtn(true)
+      }else{
+        setBtn(false)
+      }
+      // eslint-disable-next-line
+    }, [email])
+  
   
       useEffect(() => {
         if(email === ''){
           setMsgEmail("L'email est obligatoire")
-          setBtn(true)
         }else{
           if(!validateEmail(email)){
             setMsgEmail("L'email n'est pas valide")
-            setBtn(true)
           }else{
             setMsgEmail('')
-            setBtn(false)
           }
         }
       }, [email])
@@ -42,11 +50,30 @@ const ForgetPassword = ({navigation}) => {
         setError('')
       }, [])
 
-    const errorMsg = error === '' ? null : <span>{error.message}</span>
+      const errorMsg = error === '' ? null : <Text style={styles.msgError}>{error.message}</Text>
   
-    // const handleShowLoader = () => {
-    //   setShowLoader(true)
-    // }
+    const handleShowLoader = () => {
+      setShowLoader(true)
+      sendPasswordResetEmail(auth, email)
+        .then(() => {
+            setSuccess(`Consultez votre email ${email} pour changer le mot de passe`);
+            
+            setTimeout(() => {
+              navigation.navigate('Login')
+            }, 5000)
+            setError("");
+        })
+        .catch(error => {
+          console.log("error => ", error)
+            setError(error);
+            setError({
+                ...error,
+                message : 'l\'utilisateur est introuvable, réessayer !'
+              });
+              setShowLoader(false)
+              
+        })
+    }
 
   return (
         <ScrollView style={styles.container}>
@@ -57,7 +84,12 @@ const ForgetPassword = ({navigation}) => {
                     <View style={styles.slContainer}>
                         <View style={styles.formBoxRight}>
                             <View style={styles.formContent}>
-                            {/* {errorMsg} */}
+                            {
+                                success && <View>
+                                   <Text style={{color: 'green'}}> {success} </Text>
+                                </View>
+                            }
+                            {error && errorMsg}
                             <View style={styles.inputBox}>
                                 <TextInput 
                                 onFocus={() => setIsEmailFocused(true)}
@@ -67,11 +99,10 @@ const ForgetPassword = ({navigation}) => {
                                 value={email} />
                                 <Text style={[styles.label, isEmailFocused || email ? styles.labelActive : null]}>Email</Text>
                             </View>
-                            <Text style={{color: 'red', textAlign: 'center'}}>{msgEmail}</Text>
-                            <Text style={{color: 'red', textAlign: 'center',marginTop: -20}}>{msgEmail}</Text>
-                            <Button color='#4f78a4' disabled={!btn} title={showLoader ? 'Chargement...' : 'Récupérer'} />   
+                            <Text style={{color: 'red', textAlign: 'center',marginTop: -30}}>{msgEmail}</Text>
+                            <Button color='#4f78a4' onPress={handleShowLoader} disabled={!btn} title={showLoader ? 'Chargement...' : 'Récupérer'} />   
                             {
-                                showLoader && <Loader Mystyle={{width: '15px', height: '15px'}} />
+                                showLoader && <Loader />
                             }
                             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                                 <Text style={styles.simpleLink}>Déjà inscrit? Connectez-vous</Text>
@@ -96,6 +127,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         width: '100%',
         height: '70%',
+        marginBottom: 60
     },
     label: {
         color: '#fff',
@@ -158,6 +190,15 @@ const styles = StyleSheet.create({
         textDecorationLine: 'none',
         fontSize: 12,
         marginTop: 30
+    },
+    msgError: {
+      color: 'red',
+      textAlign: 'center',
+      borderWidth: 1,
+      borderColor: 'red',
+      padding: 10,
+      marginVertical: 15,
+      marginHorizontal: 0,
     },
 
 });

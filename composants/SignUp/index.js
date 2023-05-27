@@ -1,11 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, {useState, useEffect } from 'react'
-import { Text, View, TextInput, StyleSheet, Button, TouchableOpacity, ScrollView, ImageBackground } from 'react-native'
+import React, {useState, useEffect, useContext } from 'react'
+import { Text, View, TextInput, StyleSheet, Button, TouchableOpacity, ScrollView } from 'react-native'
 import Header from '../Header';
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from '../Firebase/firebase';
 import { setDoc } from 'firebase/firestore';
 import { user } from '../Firebase/firebase';
+import Loader from '../Loader';
+import { DataContext } from '../../DataContext';
 
 function validateEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -13,7 +15,7 @@ function validateEmail(email) {
 }
 
 
-const SignUp = ({navigation}) => {
+const SignUp = ({navigation, route}) => {
   
   const [pseudo, setPseudo] = useState('')
   const [email, setEmail] = useState('')
@@ -89,18 +91,22 @@ const SignUp = ({navigation}) => {
   // gestion erreurs
   const errorMsg = error === '' ? null : <Text style={styles.msgError}>{error.message}</Text>
 
+  const { setArgs } = useContext(DataContext)
+
   const handleShowLoader = () => {
     setShowLoader(true)
     createUserWithEmailAndPassword(auth, email, password)
-    .then( authUser => {
+    .then( authUser => {        
         return setDoc(user(authUser.user.uid), {
             pseudo,
             email
         });
     })
     .then(authUser => {
-        navigation.replace('Quiz', { user: authUser.user }); 
-        ToastAndroid.showWithGravity(`Salut ${authUser.user.email} et bonne chance 😉`, ToastAndroid.LONG, ToastAndroid.TOP_RIGHT)
+        //ToastAndroid.showWithGravity(String(`Salut et bonne chance 😉`), ToastAndroid.LONG, ToastAndroid.TOP_RIGHT)
+        
+        navigation.replace('Quiz', {user: true}); 
+        
         setError('')
         setPseudo('')
         setEmail('')
@@ -112,7 +118,8 @@ const SignUp = ({navigation}) => {
         ...error,
         message : 'Une erreur s\'est produite, soit l\'utilisateur existe déjà soit votre connexion internet est instable'
       });
-        setShowLoader(false)
+      console.log(error)
+      setShowLoader(false)
     })
   }
 
@@ -125,7 +132,7 @@ const SignUp = ({navigation}) => {
                     <View style={styles.slContainer}>
                         <View style={styles.formBoxRight}>
                               <View style={styles.formContent}>
-                              {/* {errorMsg} */}
+                              {errorMsg}
                               <View style={styles.inputBox}>
                                   <TextInput 
                                   onFocus={() => setIsPseudoFocused(true)}
@@ -168,7 +175,7 @@ const SignUp = ({navigation}) => {
                               </View>
                               <Button color='#4f78a4' onPress={handleShowLoader} disabled={!champsValides} title={showLoader ? 'Chargement...' : 'Inscription'} />   
                               {
-                                  showLoader && <Loader Mystyle={{width: '15px', height: '15px'}} />
+                                  showLoader && <Loader />
                               }
                               <TouchableOpacity style={{marginBottom: 50}} onPress={() => navigation.navigate('Login')}>
                                 <Text style={styles.simpleLink}>Déjà inscrit ? connectew-vous{"\n"}</Text>

@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { StyleSheet, ToastAndroid, View } from 'react-native'
+import { StyleSheet, Text, View,ScrollView } from 'react-native'
 import {useEffect, useState, memo} from 'react' 
 import Level from '../Level'
 import Logout from '../Logout'
@@ -16,7 +16,7 @@ function ajouterElement(tableau, nouvelElement) {
   return tableau;
 }
 
-const Quiz = ({error, userData, route}) => {
+const Quiz = ({route}) => {
   const [level, setLevel] = useState(0)
   const [numeroQuestion, setNumeroQuestion] = useState(0)
   const [questions, setQuestions] = useState({})
@@ -33,12 +33,10 @@ const Quiz = ({error, userData, route}) => {
   const [answersUser, setAnswersUser] = useState({})
   const [score, setScore] = useState(0)
 
-
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(null);
 
   // const myUser = route.params.user
 
-  console.log("USER => ", route.params)
 
 
   const handleSelectedOption = index => {
@@ -150,21 +148,23 @@ const Quiz = ({error, userData, route}) => {
   }, [answersUser])
 
     return numeroQuestion === questions.length ? (
-      <View style={styles.quizBg}>
+      <ScrollView style={styles.quizBg}>
         <View style={styles.container}>
           <QuizOver questions={questions} answersUser={answersUser} 
-            score={score} 
+            score={score}
+            numeroQuestion={numeroQuestion} 
+            user={route.params ? route.params.user : false}
             niveauSuivant={niveauSuivant} 
             rejouer={rejouer}
             recommencer={recommencer}
             level={level}
             />
         </View>
-      </View>
+      </ScrollView>
     ) : (
       <View style={styles.quizBg}>
         <View style={styles.container}>
-          <Logout/>
+          { route.params && <Logout/>}
           <Level level={level} />
           <ProgressBar numeroQuestion={numeroQuestion} questions={questions} />
           <Questions selectedOption={selectedOption} 
@@ -182,7 +182,8 @@ const Quiz = ({error, userData, route}) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#ffffff', // la variable --white-color n'est pas valide en React Native
-    padding: 30,
+    padding: 0,
+    marginBottom:30,
     flex: 1,
     flexGrow: 1,
     flexShrink: 0,
@@ -212,7 +213,7 @@ quizBg: {
   margin: 0,
   padding: 0,
   backgroundColor: '#ffffff', // la variable --white-color n'est pas valide en React Native
-  justifyContent: 'center',
+  height: '100%'
 },
 
 })

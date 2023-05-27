@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useContext} from 'react'
 import { Text, View, StyleSheet, TextInput, TouchableOpacity, ToastAndroid, Button, ScrollView } from 'react-native';
 import { auth } from '../Firebase/firebase';
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -12,7 +12,7 @@ function validateEmail(email) {
   
 
 
-const Login = ({navigation}) => {
+const Login = ({navigation, route}) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [btn, setBtn] = useState(false);
@@ -24,6 +24,7 @@ const Login = ({navigation}) => {
 
     const [msgEmail, setMsgEmail] = useState('')
     const [msgPassword, setMsgPassword] = useState('')
+
 
     useEffect(() => {
         if(email !== '' && validateEmail(email) && password !== '' && password.length >= 6){
@@ -64,14 +65,18 @@ const Login = ({navigation}) => {
         setError('')
       }, [])
 
-
     const handleShowLoader = () => {
       setShowLoader(true)
-
         signInWithEmailAndPassword(auth, email, password)
         .then(user => {
-              navigation.replace('Quiz', { user: user });
-              ToastAndroid.showWithGravity(`Salut ${user.email} et bonne chance 😉`, ToastAndroid.LONG, ToastAndroid.TOP_RIGHT)
+              ToastAndroid.showWithGravity(
+                String(`Bonjour ${user["_tokenResponse"].email}`),
+                ToastAndroid.LONG,
+                ToastAndroid.TOP, // Utilisez TOP pour la gravité en haut
+                ToastAndroid.RIGHT // Utilisez RIGHT pour la gravité à droite
+              );
+              navigation.replace('Quiz', {user:user});
+              
               setError('')
               setEmail('');
               setPassword('');
@@ -81,6 +86,7 @@ const Login = ({navigation}) => {
               ...error,
               message : 'Mot de passe et/ou adresse email incorrect(s), réessayer !'
             });
+            console.log("ERREUR => ", error)
             setShowLoader(false)
         })
     }
@@ -121,10 +127,10 @@ const Login = ({navigation}) => {
                             <Text style={{color: 'red', textAlign: 'center',marginTop: -20}}>{msgPassword}</Text>
                             <Button color='#4f78a4' onPress={handleShowLoader} disabled={!btn} title={showLoader ? 'Chargement...' : 'Connexion'} />   
                             {
-                                showLoader && <Loader Mystyle={{width: '15px', height: '15px'}} />
+                                showLoader && <Loader/>
                             }
                       
-                            <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                            <TouchableOpacity onPress={() => navigation.navigate('SignUp', {retour: route.params.user ? true : false})}>
                                 <Text style={styles.simpleLink}>Nouveau sur Marvel Quiz ? Inscrivez-vous maintenant.{"\n"}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => navigation.navigate('ForgetPassword')}>

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Text, View, StyleSheet,ActivityIndicator } from 'react-native'
 
-const Loader = ({chargerMsg,styling}) => {
+const Loader = () => {
   return (
     <>
         {/* <View style={styles.loader}></View>

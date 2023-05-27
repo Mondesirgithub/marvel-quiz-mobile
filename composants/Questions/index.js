@@ -37,7 +37,7 @@ const Questions = ({suivant, precedent, question, selectedOption, firstLastQuest
                     </TouchableOpacity>)
           })
         } 
-        <View style={{display: 'flex', justifyContent: 'space-around', flexDirection: 'row', marginTop: 20}}>
+        <View style={{justifyContent: 'space-around', flexDirection: 'row', marginTop: 20}}>
           { bouton }
         </View>
       </View>
