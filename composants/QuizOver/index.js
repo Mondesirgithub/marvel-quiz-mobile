@@ -7,7 +7,6 @@ import Logout from '../Logout';
 import Loader from '../Loader';
 import Modal from '../Modal';
 import { Table, Row } from 'react-native-table-component';
-import AsyncStorage from '@react-native-community/async-storage'
 import { useNavigation } from '@react-navigation/native';
 import { DataContext } from '../../DataContext';
 
@@ -20,20 +19,7 @@ const QuizOver = ({questions , answersUser, score, niveauSuivant,rejouer,recomme
   const [caracterInfos, setCaracterInfos] = useState([])
   const [loading, setLoading] = useState(true)
 
-    // <td>{question.question}</td>
-  //     <td>{question.answer}  </td>
-  //     <td>{answersUser[question.id]} {answersUser[question.id].toString() === question.answer.toString() ? bravo : rate} </td>
-  //     <td>
-  //       <button onPress={() => afficherModal(question.heroId)} className='btnInfo'>Infos</button>
-  //     </td>
-      
-  //   </tr>
-  // })) 
-  const [tableHead , setTableHead] = useState(['Question', 'Réponse', 'Votre réponse', 'Infos'])
-  // (Array.isArray(questions) &&
-  // questions.map(question => {
-  //   return <tr key={question.id}>
-
+const [tableHead , setTableHead] = useState(['Question', 'Réponse', 'Votre réponse', 'Infos'])
 const heroIds = questions.map(item => item.heroId)
 const lesQuestions = questions.map(item => item.question)
 const lesReponses = questions.map(item => item.answer)
@@ -66,21 +52,6 @@ let data = [];
   const API_PUBLIC_KEY = '3db5f06cfbe71152a2415ce2f0f2de96'
   const hash = 'ab221b7acbc4b8caf1638489c621dfcb'
   
-  useEffect(() => {
-    const checkStorageDate = async () => {
-      try {
-        const date = await AsyncStorage.getItem('MarvelStorageDate');
-        if (date) {
-          checkDataAge(Number(date));
-        }
-      } catch (error) {
-        console.log('Erreur lors de la récupération de la date dans AsyncStorage:', error);
-      }
-    };
-
-    checkStorageDate();
-  }, []);
-
   const checkDataAge = (date) => {
     const today = Date.now();
     const timeDifference = today - date;
@@ -91,31 +62,9 @@ let data = [];
     }
   };
 
-  const afficherModal = async (id) => {
+  const afficherModal = (id) => {
     if(user || args){
       setOuvrirModal(true);
-      try {
-        const storedData = await AsyncStorage.getItem(id);
-
-        if (!storedData) {
-          const response = await axios.get(`https://gateway.marvel.com/v1/public/characters/${id}?ts=1&apikey=${API_PUBLIC_KEY}&hash=${hash}`);
-          setCaracterInfos(response.data);
-          setLoading(false);
-
-          await AsyncStorage.setItem(id, JSON.stringify(response.data));
-
-          const storageDate = await AsyncStorage.getItem('MarvelStorageDate');
-          if (!storageDate) {
-            await AsyncStorage.setItem('MarvelStorageDate', Date.now().toString());
-          }
-        } else {
-          setCaracterInfos(JSON.parse(storedData));
-          setLoading(false);
-        }
-      } catch (error) {
-        console.log('Erreur :', error);
-      }
-
     }else{
       Alert.alert('Personnages Marvel', 'Veuillez vous connecter pour avoir accès aux infos des personnages Marvel', [
         {

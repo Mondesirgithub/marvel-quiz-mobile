@@ -35,9 +35,6 @@ const Quiz = ({route}) => {
 
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(null);
 
-  // const myUser = route.params.user
-
-
 
   const handleSelectedOption = index => {
     
