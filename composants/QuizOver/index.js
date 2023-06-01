@@ -20,24 +20,12 @@ const QuizOver = ({questions , answersUser, score, niveauSuivant,rejouer,recomme
   const [caracterInfos, setCaracterInfos] = useState([])
   const [loading, setLoading] = useState(true)
 
-    // <td>{question.question}</td>
-  //     <td>{question.answer}  </td>
-  //     <td>{answersUser[question.id]} {answersUser[question.id].toString() === question.answer.toString() ? bravo : rate} </td>
-  //     <td>
-  //       <button onPress={() => afficherModal(question.heroId)} className='btnInfo'>Infos</button>
-  //     </td>
-      
-  //   </tr>
-  // })) 
   const [tableHead , setTableHead] = useState(['Question', 'Réponse', 'Votre réponse', 'Infos'])
-  // (Array.isArray(questions) &&
-  // questions.map(question => {
-  //   return <tr key={question.id}>
 
-const heroIds = questions.map(item => item.heroId)
-const lesQuestions = questions.map(item => item.question)
-const lesReponses = questions.map(item => item.answer)
-const lesReponsesUser = questions.map(item => answersUser[item.id])
+  const heroIds = questions.map(item => item.heroId)
+  const lesQuestions = questions.map(item => item.question)
+  const lesReponses = questions.map(item => item.answer)
+  const lesReponsesUser = questions.map(item => answersUser[item.id])
 
 const { args } = useContext(DataContext)
 
@@ -101,13 +89,6 @@ let data = [];
           const response = await axios.get(`https://gateway.marvel.com/v1/public/characters/${id}?ts=1&apikey=${API_PUBLIC_KEY}&hash=${hash}`);
           setCaracterInfos(response.data);
           setLoading(false);
-
-          await AsyncStorage.setItem(id, JSON.stringify(response.data));
-
-          const storageDate = await AsyncStorage.getItem('MarvelStorageDate');
-          if (!storageDate) {
-            await AsyncStorage.setItem('MarvelStorageDate', Date.now().toString());
-          }
         } else {
           setCaracterInfos(JSON.parse(storedData));
           setLoading(false);
