@@ -7,7 +7,6 @@ import Logout from '../Logout';
 import Loader from '../Loader';
 import Modal from '../Modal';
 import { Table, Row } from 'react-native-table-component';
-import AsyncStorage from '@react-native-community/async-storage'
 import { useNavigation } from '@react-navigation/native';
 import { DataContext } from '../../DataContext';
 
@@ -21,13 +20,13 @@ const QuizOver = ({questions , answersUser, score, niveauSuivant,rejouer,recomme
   const [loading, setLoading] = useState(true)
 
   const [tableHead , setTableHead] = useState(['Question', 'Réponse', 'Votre réponse', 'Infos'])
-
   const heroIds = questions.map(item => item.heroId)
   const lesQuestions = questions.map(item => item.question)
   const lesReponses = questions.map(item => item.answer)
   const lesReponsesUser = questions.map(item => answersUser[item.id])
 
-const { args } = useContext(DataContext)
+
+  const { args } = useContext(DataContext)
 
 
 let data = [];
@@ -54,32 +53,7 @@ let data = [];
   const API_PUBLIC_KEY = '3db5f06cfbe71152a2415ce2f0f2de96'
   const hash = 'ab221b7acbc4b8caf1638489c621dfcb'
   
-  useEffect(() => {
-    const checkStorageDate = async () => {
-      try {
-        const date = await AsyncStorage.getItem('MarvelStorageDate');
-        if (date) {
-          checkDataAge(Number(date));
-        }
-      } catch (error) {
-        console.log('Erreur lors de la récupération de la date dans AsyncStorage:', error);
-      }
-    };
-
-    checkStorageDate();
-  }, []);
-
-  const checkDataAge = (date) => {
-    const today = Date.now();
-    const timeDifference = today - date;
-    const daysDifference = timeDifference / (1000 * 3600 * 24);
-    if (daysDifference >= 15) {
-      clearStorage();
-      saveStorageDate();
-    }
-  };
-
-  const afficherModal = async (id) => {
+  const afficherModal = (id) => {
     if(user || args){
       setOuvrirModal(true);
       try {
@@ -96,7 +70,6 @@ let data = [];
       } catch (error) {
         console.log('Erreur :', error);
       }
-
     }else{
       Alert.alert('Personnages Marvel', 'Veuillez vous connecter pour avoir accès aux infos des personnages Marvel', [
         {
