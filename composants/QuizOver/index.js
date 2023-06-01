@@ -52,16 +52,6 @@ let data = [];
   const API_PUBLIC_KEY = '3db5f06cfbe71152a2415ce2f0f2de96'
   const hash = 'ab221b7acbc4b8caf1638489c621dfcb'
   
-  const checkDataAge = (date) => {
-    const today = Date.now();
-    const timeDifference = today - date;
-    const daysDifference = timeDifference / (1000 * 3600 * 24);
-    if (daysDifference >= 15) {
-      clearStorage();
-      saveStorageDate();
-    }
-  };
-
   const afficherModal = (id) => {
     if(user || args){
       setOuvrirModal(true);
